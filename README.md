@@ -67,7 +67,7 @@ Open the link in Browser add the test credentials and complete the payment.
 ![Order Payment](screenshots/Order_Payment.png)
 
 ### Place Order
-![Place Order](screenshots/Place_Order.png)
+![Place Order](screenshots/Place_order.png)
 
 ### Product Review
 ![Product Review](screenshots/Product_review.png)
