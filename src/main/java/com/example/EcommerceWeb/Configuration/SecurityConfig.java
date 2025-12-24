@@ -1,5 +1,6 @@
 package com.example.EcommerceWeb.Configuration;
 
+import com.example.EcommerceWeb.Controller.OAuthSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,6 +11,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -23,6 +25,8 @@ public class SecurityConfig {
     UserDetailsService userDetailsService;
     @Autowired
     JwtFilter jwtFilter;
+    @Autowired
+    OAuthSuccessHandler oAuthSuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
@@ -33,7 +37,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/cart/**","/user/profile","/user/profile/update","/user/profile/delete","/user/profile/change-password","/api/review/user").hasRole("USER")
                         .requestMatchers("/api/orders/place","/api/orders/user","/api/orders/history","/api/orders/direct","/api/payments/initiate","/api/payments/history/{id}","/api/product/getProduct","/api/product/getProduct/{id}","/api/product/search","/api/product/voiceSearch","/api/review/add","/api/review/update/{reviewId}","/api/review/delete/{reviewId}","/api/review/user/{userId}").hasRole("USER")
                         .requestMatchers("/api/orders/allOrders","/api/orders/{orderId}","/api/review/add","/api/review/product/{productId}/average-rating","/api/review/product/{productId}/rating-summary","/api/review/product/{productId}/reviews","/api/review/product/{productId}/rating-summary/distribution","/api/review/{productId}/summary","/auth/logout","/api/review/product/{productId}").authenticated())
-               // .oauth2Login(oauth ->oauth.defaultSuccessUrl("/oauth2/success",true))
+                .formLogin(Customizer.withDefaults())
+                .oauth2Login(OAuth2Login ->OAuth2Login.successHandler(oAuthSuccessHandler))
                 .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

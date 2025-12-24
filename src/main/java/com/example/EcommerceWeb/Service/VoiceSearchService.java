@@ -5,11 +5,7 @@ import com.example.EcommerceWeb.DTO.RatingSummaryDTO;
 import com.example.EcommerceWeb.DTO.SearchFilters;
 import com.example.EcommerceWeb.Repository.ProductRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.cloud.speech.v1.*;
-import com.google.cloud.vertexai.VertexAI;
-import com.google.cloud.vertexai.generativeai.GenerativeModel;
-import com.google.cloud.vertexai.generativeai.ResponseHandler;
-import com.google.protobuf.ByteString;
+
 import org.springframework.ai.audio.transcription.AudioTranscriptionPrompt;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.openai.OpenAiAudioTranscriptionModel;
