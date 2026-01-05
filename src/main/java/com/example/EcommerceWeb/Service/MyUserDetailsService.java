@@ -4,7 +4,6 @@ import com.example.EcommerceWeb.Repository.BusinessRepository;
 import com.example.EcommerceWeb.Repository.UserRepository;
 import com.example.EcommerceWeb.model.Business;
 import com.example.EcommerceWeb.model.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -16,10 +15,13 @@ import java.util.Optional;
 
 @Service
 public class MyUserDetailsService implements UserDetailsService{
-    @Autowired
-    UserRepository userRepository;
-    @Autowired
-    BusinessRepository businessRepository;
+    private final UserRepository userRepository;
+    private final BusinessRepository businessRepository;
+
+    public MyUserDetailsService(UserRepository userRepository, BusinessRepository businessRepository) {
+        this.userRepository = userRepository;
+        this.businessRepository = businessRepository;
+    }
 
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException{
         Optional<User> user=userRepository.findByEmail(email);

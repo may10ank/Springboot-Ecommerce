@@ -10,31 +10,25 @@ import com.stripe.model.Customer;
 import com.stripe.model.PaymentIntent;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.support.SimpleTriggerContext;
 import org.springframework.stereotype.Service;
 import com.stripe.param.checkout.SessionCreateParams;
 import java.time.LocalDateTime;
-import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
-import com.stripe.model.Customer;
 import com.stripe.model.checkout.Session;
-import com.stripe.param.checkout.SessionCreateParams;
-import com.stripe.param.checkout.SessionCreateParams.LineItem.PriceData;
-import com.stripe.model.checkout.Session;
-import com.stripe.model.PaymentIntent;
 
 @Service
 public class PaymentService {
-    @Autowired
-PaymentRepository paymentRepository;
-    @Autowired
-OrderRepository orderRepository;
-    @Autowired
-    OrderService orderService;
-    @Autowired
-    NotificationService notificationService;
+    private final PaymentRepository paymentRepository;
+    private final OrderRepository orderRepository;
+    private final OrderService orderService;
+    private final NotificationService notificationService;
+
+    public PaymentService(PaymentRepository paymentRepository, OrderRepository orderRepository, OrderService orderService, NotificationService notificationService) {
+        this.paymentRepository = paymentRepository;
+        this.orderRepository = orderRepository;
+        this.orderService = orderService;
+        this.notificationService = notificationService;
+    }
 
     String STRIPE_API_KEY =System.getenv().get("STRIPE_API_KEY");
     String CLIENT_BASE_URL="http://localhost:8080";

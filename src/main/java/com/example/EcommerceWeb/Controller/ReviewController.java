@@ -9,13 +9,9 @@ import com.example.EcommerceWeb.Service.ReviewSummaryService;
 import com.example.EcommerceWeb.customException.UserNotFoundException;
 import com.example.EcommerceWeb.model.Review;
 import com.example.EcommerceWeb.model.User;
-import org.hibernate.type.internal.ImmutableNamedBasicTypeImpl;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,13 +20,16 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/review")
 public class ReviewController {
-    @Autowired
-    ReviewService reviewService;
-    @Autowired
-    ReviewSummaryService reviewSummaryService;
+    private final ReviewService reviewService;
+    private final ReviewSummaryService reviewSummaryService;
+    private final UserRepository userRepository;
 
-    @Autowired
-    UserRepository userRepository;
+    public ReviewController(ReviewService reviewService, ReviewSummaryService reviewSummaryService, UserRepository userRepository) {
+        this.reviewService = reviewService;
+        this.reviewSummaryService = reviewSummaryService;
+        this.userRepository = userRepository;
+    }
+
     @PostMapping("/add")
     public ResponseEntity<Review> addReview(Authentication authentication,
                                             @RequestParam int productId,

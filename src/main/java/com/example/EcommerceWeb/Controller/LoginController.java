@@ -20,13 +20,16 @@ import java.util.Date;
 @RestController
 @RequestMapping("/auth/")
 public class LoginController {
-@Autowired
-    LoginService loginService;
-@Autowired
-JwtService jwtService;
+private final LoginService loginService;
+private final JwtService jwtService;
+private final TokenService tokenService;
 
-@Autowired
-    TokenService tokenService;
+    public LoginController(LoginService loginService, JwtService jwtService, TokenService tokenService) {
+        this.loginService = loginService;
+        this.jwtService = jwtService;
+        this.tokenService = tokenService;
+    }
+
 
     @PostMapping("/register/user")
     public ResponseEntity<String> registerUser(@RequestBody@Valid User user){
@@ -50,12 +53,8 @@ JwtService jwtService;
     public ResponseEntity<String> logout(@RequestHeader("Authorization") String authHeader) {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
-
-            // Extract expiration from token using JwtService
             Date expirationDate = jwtService.extractClaim(token, Claims::getExpiration);
             LocalDateTime expiry = expirationDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-
-            // Save token in blacklist
             tokenService.blacklistToken(token, expiry);
         }
 

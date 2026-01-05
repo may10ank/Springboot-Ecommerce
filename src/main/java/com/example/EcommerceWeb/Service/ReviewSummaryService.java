@@ -21,14 +21,13 @@ import java.util.stream.Collectors;
 @Service
 public class ReviewSummaryService {
     private final ChatClient chatClient;
-    @Autowired
-     ReviewService reviewService;
-    @Autowired
-     ProductRepository productRepository;
+     private final ReviewService reviewService;
+     private final ProductRepository productRepository;
 
-    public ReviewSummaryService(ChatClient.Builder chatClient) {
-
+    public ReviewSummaryService(ChatClient.Builder chatClient, ReviewService reviewService, ProductRepository productRepository) {
         this.chatClient =chatClient.build();
+        this.reviewService = reviewService;
+        this.productRepository = productRepository;
     }
 
     public String summarizeReviews(List<String> reviews) {

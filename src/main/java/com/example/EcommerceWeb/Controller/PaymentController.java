@@ -16,12 +16,16 @@ import java.time.LocalDateTime;
 @RestController
 @RequestMapping("/api/payments")
 public class PaymentController {
-    @Autowired
-    PaymentService paymentService;
-    @Autowired
-    OrderRepository orderRepository;
-    @Autowired
-    PaymentRepository paymentRepository;
+    private final PaymentService paymentService;
+    private final OrderRepository orderRepository;
+    private final PaymentRepository paymentRepository;
+
+    public PaymentController(PaymentService paymentService, OrderRepository orderRepository, PaymentRepository paymentRepository) {
+        this.paymentService = paymentService;
+        this.orderRepository = orderRepository;
+        this.paymentRepository = paymentRepository;
+    }
+
 
     @PostMapping("/initiate")
     public ResponseEntity<String> initiate(@RequestBody PaymentRequestDTO paymentRequestDTO) throws Exception {

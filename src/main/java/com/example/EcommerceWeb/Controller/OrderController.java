@@ -19,10 +19,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
-    @Autowired
-    OrderService orderService;
-    @Autowired
-    UserRepository userRepository;
+    private final OrderService orderService;
+    private final UserRepository userRepository;
+
+    public OrderController(OrderService orderService, UserRepository userRepository) {
+        this.orderService = orderService;
+        this.userRepository = userRepository;
+    }
 
     @PostMapping("/place")
     public ResponseEntity<OrderDTO> placeOrder(Authentication authentication){

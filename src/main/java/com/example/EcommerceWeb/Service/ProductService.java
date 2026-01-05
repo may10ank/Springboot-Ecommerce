@@ -34,16 +34,19 @@ import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
-    @Autowired
-    private ProductRepository productRepository;
-    @Autowired
-    private ProductImageRepository productImageRepository;
-   @Autowired
-    private ReviewRepository reviewRepository;
-    @Autowired
-    private ReviewService reviewService;
-    @Autowired
-    private Validator validator;
+    private final ProductRepository productRepository;
+    private final ProductImageRepository productImageRepository;
+    private final ReviewRepository reviewRepository;
+    private final ReviewService reviewService;
+    private final Validator validator;
+
+    public ProductService(ProductRepository productRepository, ProductImageRepository productImageRepository, ReviewRepository reviewRepository, ReviewService reviewService, Validator validator) {
+        this.productRepository = productRepository;
+        this.productImageRepository = productImageRepository;
+        this.reviewRepository = reviewRepository;
+        this.reviewService = reviewService;
+        this.validator = validator;
+    }
 
     private final String CACHE_NAME="product";
     public Product addProduct(Product product, List<MultipartFile> images, MultipartFile video) {

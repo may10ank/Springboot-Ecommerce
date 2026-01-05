@@ -7,28 +7,24 @@ import com.example.EcommerceWeb.model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.client.OAuth2AuthorizationSuccessHandler;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-
 import java.io.IOException;
-import java.util.Map;
 
 @Component
 public class OAuthSuccessHandler implements AuthenticationSuccessHandler {
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    BusinessRepository businessRepository;
-    @Autowired
-    private JwtService jwtService;
+    private final UserRepository userRepository;
+    private final BusinessRepository businessRepository;
+    private final JwtService jwtService;
+
+    public OAuthSuccessHandler(UserRepository userRepository, BusinessRepository businessRepository, JwtService jwtService) {
+        this.userRepository = userRepository;
+        this.businessRepository = businessRepository;
+        this.jwtService = jwtService;
+    }
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {

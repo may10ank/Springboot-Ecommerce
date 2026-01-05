@@ -8,8 +8,6 @@ import com.example.EcommerceWeb.Service.VoiceSearchService;
 import com.example.EcommerceWeb.model.Business;
 import com.example.EcommerceWeb.model.Product;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.neo4j.Neo4jProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,13 +23,16 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/product")
 public class ProductController {
-    @Autowired
-    private ProductService productService;
+    private final ProductService productService;
+    private final BusinessRepository businessRepository;
+    private final VoiceSearchService voiceSearchService;
 
-    @Autowired
-    private BusinessRepository businessRepository;
-    @Autowired
-    VoiceSearchService voiceSearchService;
+    public ProductController(ProductService productService, BusinessRepository businessRepository, VoiceSearchService voiceSearchService) {
+        this.productService = productService;
+        this.businessRepository = businessRepository;
+        this.voiceSearchService = voiceSearchService;
+    }
+
     @PostMapping("/addProduct")
     public ResponseEntity<Product> addProduct(@Valid @RequestPart("product") Product product, @RequestPart(value = "images", required = false) List<MultipartFile> images, @RequestPart(value = "video", required = false) MultipartFile video, Authentication authentication) {
         String email = authentication.getName();

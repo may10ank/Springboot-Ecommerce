@@ -4,16 +4,18 @@ import com.example.EcommerceWeb.DTO.PasswordChangeDto;
 import com.example.EcommerceWeb.DTO.UserDTO;
 import com.example.EcommerceWeb.Repository.UserRepository;
 import com.example.EcommerceWeb.model.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
-    @Autowired
-    UserRepository userRepository;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     public UserDTO getUserProfile(String email){
         User user=userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User not found"));

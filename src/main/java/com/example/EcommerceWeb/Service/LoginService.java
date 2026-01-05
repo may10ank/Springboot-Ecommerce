@@ -29,16 +29,20 @@ import java.util.Map;
 
 @Service
 public class LoginService {
-    @Autowired
-    UserRepository userRepository;
-    @Autowired
-    BusinessRepository businessRepository;
-    @Autowired
-    AuthenticationManager authenticationManager;
-    @Autowired
-    JwtService jwtService;
-    @Autowired
-    NotificationService notificationService;
+    private final UserRepository userRepository;
+    private final BusinessRepository businessRepository;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
+    private final NotificationService notificationService;
+
+    public LoginService(UserRepository userRepository, BusinessRepository businessRepository, AuthenticationManager authenticationManager, JwtService jwtService, NotificationService notificationService) {
+        this.userRepository = userRepository;
+        this.businessRepository = businessRepository;
+        this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
+        this.notificationService = notificationService;
+    }
+
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public void registerUser(User user) {

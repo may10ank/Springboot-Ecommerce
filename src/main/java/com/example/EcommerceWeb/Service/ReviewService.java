@@ -25,12 +25,15 @@ import java.util.stream.Collectors;
 
 @Service
 public class ReviewService {
-    @Autowired
-    ReviewRepository reviewRepository;
-    @Autowired
-    UserRepository userRepository;
-    @Autowired
-    ProductRepository productRepository;
+    private final ReviewRepository reviewRepository;
+    private final UserRepository userRepository;
+    private final ProductRepository productRepository;
+
+    public ReviewService(ReviewRepository reviewRepository, UserRepository userRepository, ProductRepository productRepository) {
+        this.reviewRepository = reviewRepository;
+        this.userRepository = userRepository;
+        this.productRepository = productRepository;
+    }
 
     public Review addReview(int userId, int productId, int rating, String comment){
         User user=userRepository.findById(userId).orElseThrow(()->new RuntimeException("User"+userId+"not found"));

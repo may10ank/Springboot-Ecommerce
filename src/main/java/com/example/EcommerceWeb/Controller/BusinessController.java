@@ -12,8 +12,11 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/business")
 public class BusinessController {
-    @Autowired
-    BusinessService businessService;
+    private final BusinessService businessService;
+
+    public BusinessController(BusinessService businessService){
+        this.businessService=businessService;
+    }
 
      @GetMapping("/profile")
     public ResponseEntity<BusinessDTO> getProfile(Authentication authentication) {

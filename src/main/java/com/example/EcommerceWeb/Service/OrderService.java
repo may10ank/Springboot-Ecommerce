@@ -18,16 +18,19 @@ import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
-    @Autowired
-    OrderRepository orderRepository;
-    @Autowired
-    UserRepository userRepository;
-    @Autowired
-    CartRepository cartRepository;
-    @Autowired
-    ProductRepository productRepository;
-    @Autowired
-    PaymentRepository paymentRepository;
+    private final OrderRepository orderRepository;
+    private final UserRepository userRepository;
+    private final CartRepository cartRepository;
+    private final ProductRepository productRepository;
+    private final PaymentRepository paymentRepository;
+
+    public OrderService(OrderRepository orderRepository, UserRepository userRepository, CartRepository cartRepository, ProductRepository productRepository, PaymentRepository paymentRepository) {
+        this.orderRepository = orderRepository;
+        this.userRepository = userRepository;
+        this.cartRepository = cartRepository;
+        this.productRepository = productRepository;
+        this.paymentRepository = paymentRepository;
+    }
 
     @Transactional
     public Order createOrder(int userId) {
