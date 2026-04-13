@@ -70,10 +70,10 @@ public class OrderService {
     @Transactional
     public OrderDTO placeDirectOrder(int userId, int productId, int quantity) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+                .orElseThrow(() -> new RuntimeException("User not found with Id: " + userId));
 
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ProductNotFoundException("Product not found: " + productId));
+                .orElseThrow(() -> new ProductNotFoundException("Product not found with ID: " + productId));
 
         if (product.getStock() < quantity) {
             throw new RuntimeException("Insufficient stock for product: " + product.getProductName());

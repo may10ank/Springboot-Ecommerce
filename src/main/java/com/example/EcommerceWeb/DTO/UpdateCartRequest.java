@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 
 public class UpdateCartRequest {
 
-    @NotNull(message = "Cart Item ID is required")
+    @NotNull(message = "Cart Item ID cannot be null")
     private Integer cartItemId;
 
     @Min(value = 1,message = "Quantity must be at least 1")

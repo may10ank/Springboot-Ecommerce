@@ -1,7 +1,5 @@
 package com.example.EcommerceWeb.DTO;
 
-import java.security.PrivateKey;
-
 public class ProductSummaryDTO {
     private int id;
     private String name;

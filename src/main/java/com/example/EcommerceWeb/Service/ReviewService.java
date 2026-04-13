@@ -65,7 +65,7 @@ public class ReviewService {
     }
 
     public void deleteReview(int reviewId){
-        Review review=reviewRepository.findById(reviewId).orElseThrow(()->new RuntimeException("review not found"));
+        Review review=reviewRepository.findById(reviewId).orElseThrow(()->new RuntimeException("Review not found"));
 
         reviewRepository.delete(review);
     }
