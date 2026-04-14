@@ -27,7 +27,6 @@ public class SecurityConfig {
     JwtFilter jwtFilter;
     @Autowired
     OAuthSuccessHandler oAuthSuccessHandler;
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
         return http.csrf(csrf->csrf.disable())

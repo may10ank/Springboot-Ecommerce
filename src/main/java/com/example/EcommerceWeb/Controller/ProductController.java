@@ -26,7 +26,6 @@ public class ProductController {
     private final ProductService productService;
     private final BusinessRepository businessRepository;
     private final VoiceSearchService voiceSearchService;
-
     public ProductController(ProductService productService, BusinessRepository businessRepository, VoiceSearchService voiceSearchService) {
         this.productService = productService;
         this.businessRepository = businessRepository;

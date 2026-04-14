@@ -8,7 +8,6 @@ public class CartItemDTO {
     private int quantity;
     private int totalPrice;
     private ProductSummaryDTO productSummaryDTO;
-
     public static CartItemDTO itemDTO(CartItem item){
         Product product=item.getProduct();
         ProductSummaryDTO ps=new ProductSummaryDTO();

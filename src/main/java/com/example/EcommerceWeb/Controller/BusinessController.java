@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/business")
 public class BusinessController {
     private final BusinessService businessService;
-
     public BusinessController(BusinessService businessService){
         this.businessService=businessService;
     }
