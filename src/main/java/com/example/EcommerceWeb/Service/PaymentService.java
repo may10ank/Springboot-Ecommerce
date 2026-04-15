@@ -141,7 +141,7 @@ public class PaymentService {
             emailBody += "- " + item.getProduct().getProductName() + " x " + item.getQuantity() +
                     " = " + (item.getQuantity() * item.getPrice()) + "\n";
         }
-        emailBody += "\nThank you for shopping with us!";
+        emailBody += "\nThank you for shopping with us!Visiting again";
        return emailBody;
     }
 }

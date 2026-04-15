@@ -41,7 +41,7 @@ public class UserService {
     }
 
     public void changePassword(String email,PasswordChangeDto passwordChangeDto){
-        User user=userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User not found"));
+        User user=userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User doesn't exists"));
         if(!passwordEncoder.matches(passwordChangeDto.getOldPassword(),user.getPassword())){
             throw new RuntimeException("Old password is incorrect");
         }
