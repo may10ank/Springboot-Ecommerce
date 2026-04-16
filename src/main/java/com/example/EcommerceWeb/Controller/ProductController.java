@@ -88,7 +88,7 @@ public class ProductController {
             @RequestParam(defaultValue = "productId") String sortBy,
             @RequestParam(defaultValue = "asc") String sortDir,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "10") int size) {
         Page<ProductListDTO> products = productService.searchProducts(name, category, brand, minPrice, maxPrice, sortBy, sortDir, page, size);
         return new ResponseEntity<>(products.getContent(), HttpStatus.OK);
     }

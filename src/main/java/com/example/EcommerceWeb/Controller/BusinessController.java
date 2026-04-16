@@ -32,7 +32,7 @@ public class BusinessController {
     public ResponseEntity<String> deleteAccount(Authentication authentication) {
         String email = authentication.getName();
         businessService.deleteAccount(email);
-        return new ResponseEntity<>("Business account has been deleted successfully.",HttpStatus.OK);
+        return new ResponseEntity<>("Your Business account has been deleted successfully.",HttpStatus.OK);
     }
 
     @PutMapping("/profile/change-password")
