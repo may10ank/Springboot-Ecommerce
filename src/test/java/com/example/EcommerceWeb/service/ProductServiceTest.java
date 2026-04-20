@@ -24,23 +24,22 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.validation.Validator;
 
-import javax.annotation.meta.When;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 public class ProductServiceTest {
-    @Mock
+    @InjectMocks
     private ProductService productService;
-    @InjectMocks
+    @Mock
     private ProductRepository productRepository;
-    @InjectMocks
+    @Mock
     private ProductImageRepository productImageRepository;
-    @InjectMocks
+    @Mock
     private ReviewRepository reviewRepository;
-    @InjectMocks
+    @Mock
     private ReviewService reviewService;
-    @InjectMocks
+    @Mock
     private Validator validator;
 
     @BeforeEach
