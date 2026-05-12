@@ -1,59 +1,60 @@
 package com.example.EcommerceWeb.Service;
 
 import com.example.EcommerceWeb.DTO.ReviewDTO;
+import com.example.EcommerceWeb.DTO.ReviewSummaryRequestDto;
 import com.example.EcommerceWeb.Repository.ProductRepository;
 import com.example.EcommerceWeb.model.Product;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 public class ReviewSummaryService {
-    private final ChatClient chatClient;
      private final ReviewService reviewService;
      private final ProductRepository productRepository;
+     private final RestTemplate restTemplate;
+     private static final String PYTHON_SUMMARY_URL="http://localhost:8000/summarize";
 
-    public ReviewSummaryService(ChatClient.Builder chatClient, ReviewService reviewService, ProductRepository productRepository) {
-        this.chatClient =chatClient.build();
+    public ReviewSummaryService(ReviewService reviewService, ProductRepository productRepository,RestTemplate restTemplate) {
+        this.restTemplate =restTemplate;
         this.reviewService = reviewService;
         this.productRepository = productRepository;
     }
 
-    public String summarizeReviews(List<String> reviews) {
-        if (reviews == null || reviews.isEmpty()) {
-            return "No reviews available for this Product";
+    public String reviewSummary(int productId){
+//        Product product = productRepository.findById(productId)
+//                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        List<ReviewDTO> reviewDTOs =reviewService.getReviewsByProduct(productId);
+        if (reviewDTOs  == null || reviewDTOs .isEmpty()) {
+            return "No reviews available for this product.";
         }
 
-        String allReviews = String.join("\n", reviews);
-
-        String promptText = """
-                 You are a helpful assistant. Summarize the following customer product reviews
-                 into 2-3 sentences highlighting overall sentiment, common praise, and common complaints.
-                \s
-                 Reviews:
-                 {reviews}
-                     """;
-
-        PromptTemplate template = new PromptTemplate(promptText);
-        Prompt prompt = template.create(Map.of("reviews", allReviews));
-
-        return chatClient.prompt(prompt).call().content();
-    }
-
-    public String reviewSummary(int productId){
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
-
-        List<String> reviewTexts = reviewService.getReviewsByProduct(product.getProductId())
-                .stream()
-                .map(ReviewDTO::getComment)
-                .filter(comment->comment!=null && !comment.isBlank())
+        List<ReviewSummaryRequestDto.ReviewItem> items=reviewDTOs.stream()
+                .filter(r->r.getComment()!=null && !r.getComment().isBlank())
+                .map(r->new ReviewSummaryRequestDto.ReviewItem(r.getRating(),r.getComment()))
                 .collect(Collectors.toList());
-        return summarizeReviews(reviewTexts);
-    }
 
+        if (items.isEmpty()) {
+            return "No text reviews available to summarize.";
+        }
+
+        ReviewSummaryRequestDto requestBody=new ReviewSummaryRequestDto(productId,items);
+        HttpHeaders headers=new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<ReviewSummaryRequestDto> entity = new HttpEntity<>(requestBody, headers);
+        try{
+            ResponseEntity<String> response=restTemplate.exchange(PYTHON_SUMMARY_URL,HttpMethod.POST,entity,String.class);
+            return response.getBody();
+        }catch (Exception e){
+            throw new RuntimeException("Failed to get summary from python service: "+e.getMessage());
+        }
+    }
 }
