@@ -1,22 +1,21 @@
 services:
-  ecommerce-app:
-    build: .
-    container_name: ecommerce-app
+  postgres:
+    image: postgres:16
+    container_name: postgres
     ports:
-      - "8080:8080"
+      - "5432:5432"
     environment:
-      DB_PASS: "${DB_PASS}"
-      twilio_accountId: "${twilio_accountId}"
-      twilio_authToken: "${twilio_authToken}"
-      sendgrid_key: "${sendgrid_key}"
-      google_clientId: "${google_clientId}"
-      google_secret: "${google_secret}"
-      REDIS_HOST: "redis"
-      REDIS_PORT: "6379"
-    depends_on:
-      - redis
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      POSTGRES_DB: EcommerceWeb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASS}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7
@@ -24,3 +23,60 @@ services:
     ports:
       - "6379:6379"
     restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  review-summary:
+    build:
+      context: ./review-summary-service
+      dockerfile: Dockerfile.python
+    container_name: review-summary
+    ports:
+      - "8000:8000"
+    environment:
+      GROQ_API_KEY: ${GROQ_API_KEY}
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  ecommerce-app:
+    build: .
+    container_name: ecommerce-app
+    ports:
+      - "8080:8080"
+    environment:
+      # Database
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/EcommerceWeb
+      SPRING_DATASOURCE_USERNAME: postgres
+      DB_PASS: ${DB_PASS}
+      # Redis
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      # Python service URL (container name as host)
+      PYTHON_SUMMARY_URL: http://review-summary:8000/summarize
+      # External keys
+      openai_key: ${openai_key}
+      twilio_accountId: ${twilio_accountId}
+      twilio_authToken: ${twilio_authToken}
+      sendgrid_key: ${sendgrid_key}
+      google_clientId: ${google_clientId}
+      google_secret: ${google_secret}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      review-summary:
+        condition: service_healthy
+    restart: always
+
+volumes:
+  postgres_data:
+
+

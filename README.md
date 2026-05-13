@@ -34,6 +34,9 @@ The project follows clean architecture, layered design, and modern Spring Boot b
 - **Redis Cache**
 - **Docker & Docker Compose**
 - **Maven**
+- **Python**
+- **GEN AI**
+- **RAG**
 
 ### Testing
 - **JUnit 5**

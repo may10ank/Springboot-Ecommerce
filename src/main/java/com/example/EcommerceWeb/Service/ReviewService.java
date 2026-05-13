@@ -8,19 +8,17 @@ import com.example.EcommerceWeb.Repository.UserRepository;
 import com.example.EcommerceWeb.model.Product;
 import com.example.EcommerceWeb.model.Review;
 import com.example.EcommerceWeb.model.User;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.lang.invoke.StringConcatException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,11 +26,13 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final ReviewSummaryService reviewSummaryService;
 
-    public ReviewService(ReviewRepository reviewRepository, UserRepository userRepository, ProductRepository productRepository) {
+    public ReviewService(ReviewRepository reviewRepository, UserRepository userRepository, ProductRepository productRepository,@Lazy ReviewSummaryService reviewSummaryService) {
         this.reviewRepository = reviewRepository;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
+        this.reviewSummaryService=reviewSummaryService;
     }
 
     public Review addReview(int userId, int productId, int rating, String comment){
@@ -46,6 +46,7 @@ public class ReviewService {
         review.setCreatedAt(LocalDateTime.now());
 
         Review saved=reviewRepository.save(review);
+        reviewSummaryService.onNewReviewAdded(productId);
         return saved;
     }
 
@@ -66,14 +67,12 @@ public class ReviewService {
 
     public void deleteReview(int reviewId){
         Review review=reviewRepository.findById(reviewId).orElseThrow(()->new RuntimeException("Review not found"));
-
         reviewRepository.delete(review);
     }
 
     public List<ReviewDTO> getReviewsByUser(int userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
         List<Review> reviews=reviewRepository.findByUser(user);
         return reviews.stream().map(ReviewDTO::reviewToDto).collect(Collectors.toList());
     }
