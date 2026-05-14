@@ -7,8 +7,8 @@ public class ProductSpecification {
     public static Specification<Product> nameOrDescriptionContians(String keyword){
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.or(
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" + keyword.toLowerCase()+ "%"),
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), "%" + keyword.toLowerCase()+ "%")
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("productName")), "%" + keyword.toLowerCase()+ "%"),
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("productDescription")), "%" + keyword.toLowerCase()+ "%")
                 );
     }
 

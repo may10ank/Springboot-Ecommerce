@@ -12,7 +12,12 @@ import org.springframework.ai.openai.OpenAiAudioTranscriptionModel;
 import org.springframework.ai.openai.OpenAiAudioTranscriptionOptions;
 import org.springframework.ai.openai.api.OpenAiAudioApi;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.*;
+import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.ai.audio.transcription.AudioTranscriptionResponse;
 import org.springframework.stereotype.Service;
@@ -22,142 +27,66 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.List;
-
 @Service
 public class VoiceSearchService {
-    @Autowired
-    private SpeechToTextService speechToTextService;
-    @Autowired
-    private  QueryParserService queryParserService;
-    @Autowired
-    private ProductService productService;
-    @Autowired
-    private ReviewService reviewService;
+
+    private final ProductService productService;
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
+    private static final String PYTHON_VOICE_SEARCH_URL="http://localhost:8000/voice-search";
+
+    public VoiceSearchService(ProductService productService,
+                              RestTemplate restTemplate,
+                              ObjectMapper objectMapper) {
+        this.productService = productService;
+        this.restTemplate = restTemplate;
+        this.objectMapper = objectMapper;
+    }
 
     public List<ProductListDTO> searchByVoice(MultipartFile audioFile) throws Exception {
-        String query = speechToTextService.transcribe(audioFile);
-        SearchFilters filters = queryParserService.parse(query);
+
+        SearchFilters filters = callPythonVoiceSearch(audioFile);
+
         return productService.searchProducts(
-                        filters.getName(),
-                        filters.getCategory(),
-                        filters.getBrand(),
-                        filters.getMinPrice(),
-                        filters.getMaxPrice(),
-                        "id",
-                        "asc",
-                        0,
-                        10
-                ).getContent();
-    }
-}
-
-@Service
-class QueryParser{
-    private final ChatClient chatClient;
-    public QueryParser(ChatClient.Builder builder) {
-        this.chatClient = builder.build();
+                filters.getName(),
+                null,
+                filters.getBrand(),
+                filters.getMinPrice(),
+                filters.getMaxPrice(),
+                "productId",
+                "asc",
+                0,
+                10
+        ).getContent();
     }
 
-    public SearchFilters parse(String query) {
-        String prompt = """
-           Extract filters from the user query.
-            Output strictly as JSON in the following format:
-            {
-              "name": "keyword for product",
-              "category": "category if mentioned",
-              "brand": "brand if mentioned",
-              "minPrice": number or null,
-              "maxPrice": number or null
+    private SearchFilters callPythonVoiceSearch(MultipartFile audioFile) throws Exception {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+        MultipartBodyBuilder builder = new MultipartBodyBuilder();
+        builder.part("audio", new ByteArrayResource(audioFile.getBytes()) {
+            @Override
+            public String getFilename() {
+                return audioFile.getOriginalFilename();
             }
+        });
 
-            Query: "{query}"
-            """;
-
-        String Prompt = prompt.replace("{query}", query);
-
-        String response = chatClient.prompt(Prompt)
-                .call()
-                .content();
+        HttpEntity<?> entity = new HttpEntity<>(builder.build(), headers);
 
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            return mapper.readValue(response, SearchFilters.class);
+            ResponseEntity<String> response = restTemplate.exchange(
+                    PYTHON_VOICE_SEARCH_URL,
+                    HttpMethod.POST,
+                    entity,
+                    String.class
+            );
+            return objectMapper.readValue(response.getBody(), SearchFilters.class);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to parse query: " + response, e);
+            throw new RuntimeException("Failed to get filters from Python voice search service: " + e.getMessage());
         }
     }
 }
-
-
-@Service
-class SpeechToTextService {
-
-    private final OpenAiAudioTranscriptionModel transcriptionModel;
-
-    public SpeechToTextService(OpenAiAudioTranscriptionModel transcriptionModel) {
-        this.transcriptionModel = transcriptionModel;
-    }
-
-    public String transcribe(MultipartFile audioFile) throws Exception {
-        AudioTranscriptionPrompt prompt = new AudioTranscriptionPrompt(
-                audioFile.getResource(),
-                OpenAiAudioTranscriptionOptions.builder()
-                        .model("whisper-1")
-                        .responseFormat(OpenAiAudioApi.TranscriptResponseFormat.TEXT)
-                        .language("en")
-                        .build()
-        );
-        AudioTranscriptionResponse response = transcriptionModel.call(prompt);
-        return response.getResult().getOutput();
-    }
-}
-
-@Service
-class QueryParserService {
-
-    private final ChatClient chatClient;
-
-    public QueryParserService(ChatClient.Builder builder) {
-        this.chatClient = builder.build();
-    }
-
-    public SearchFilters parse(String query) {
-        String prompt = """
-           Extract filters from the user query.
-           Output strictly as JSON in the following format:
-           {
-             "name": "keyword for product",
-             "category": "category if mentioned",
-             "brand": "brand if mentioned",
-             "minPrice": number or null,
-             "maxPrice": number or null
-           }
-           Query: "{query}"
-           """;
-
-        String formattedPrompt = prompt.replace("{query}", query);
-
-        String response = chatClient.prompt(formattedPrompt)
-                .call()
-                .content();
-
-        // Extract JSON from the response safely
-        int start = response.indexOf("{");
-        int end = response.lastIndexOf("}");
-        if (start < 0 || end <= start) {
-            throw new RuntimeException("No JSON found in Ollama response: " + response);
-        }
-        String json = response.substring(start, end + 1);
-
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            return mapper.readValue(json, SearchFilters.class);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to parse JSON: " + json, e);
-        }
-    }
-}
-
 
 
 
