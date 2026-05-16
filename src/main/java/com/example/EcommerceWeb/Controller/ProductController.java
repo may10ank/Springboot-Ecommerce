@@ -3,6 +3,7 @@ package com.example.EcommerceWeb.Controller;
 import com.example.EcommerceWeb.DTO.ProductDTO;
 import com.example.EcommerceWeb.DTO.ProductListDTO;
 import com.example.EcommerceWeb.Repository.BusinessRepository;
+import com.example.EcommerceWeb.Service.ProductQAService;
 import com.example.EcommerceWeb.Service.ProductService;
 import com.example.EcommerceWeb.Service.VoiceSearchService;
 import com.example.EcommerceWeb.model.Business;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.stringtemplate.v4.ST;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -26,10 +28,12 @@ public class ProductController {
     private final ProductService productService;
     private final BusinessRepository businessRepository;
     private final VoiceSearchService voiceSearchService;
-    public ProductController(ProductService productService, BusinessRepository businessRepository, VoiceSearchService voiceSearchService) {
+    private final ProductQAService productQAService;
+    public ProductController(ProductService productService, BusinessRepository businessRepository, VoiceSearchService voiceSearchService, ProductQAService productQAService) {
         this.productService = productService;
         this.businessRepository = businessRepository;
         this.voiceSearchService = voiceSearchService;
+        this.productQAService = productQAService;
     }
 
     @PostMapping("/addProduct")
@@ -132,6 +136,27 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(null);
         }
+    }
+
+    @PostMapping("/qa/{productId}")
+    public ResponseEntity<Map<String,String>> qa(@PathVariable int productId,@RequestBody Map<String,Object> body){
+        String question=(String) body.get("question");
+        if (question == null || question.isBlank()) {
+            return new ResponseEntity<>(
+                    Map.of("error", "Question cannot be empty"),
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+        List<Map<String, String>> chatHistory =
+                (List<Map<String, String>>) body.getOrDefault("chatHistory", List.of());
+        String answer = productQAService.askQuestion(productId, question, chatHistory);
+
+        return new ResponseEntity<>(
+                Map.of("answer", answer, "productId", String.valueOf(productId)),
+                HttpStatus.OK
+        );
+
+
     }
 }
 

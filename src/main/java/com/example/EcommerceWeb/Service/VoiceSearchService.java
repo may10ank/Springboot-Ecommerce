@@ -1,31 +1,16 @@
 package com.example.EcommerceWeb.Service;
 
 import com.example.EcommerceWeb.DTO.ProductListDTO;
-import com.example.EcommerceWeb.DTO.RatingSummaryDTO;
 import com.example.EcommerceWeb.DTO.SearchFilters;
-import com.example.EcommerceWeb.Repository.ProductRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.springframework.ai.audio.transcription.AudioTranscriptionPrompt;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.openai.OpenAiAudioTranscriptionModel;
-import org.springframework.ai.openai.OpenAiAudioTranscriptionOptions;
-import org.springframework.ai.openai.api.OpenAiAudioApi;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.ai.audio.transcription.AudioTranscriptionResponse;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-
-import java.io.*;
-import java.nio.file.Files;
 import java.util.List;
 @Service
 public class VoiceSearchService {

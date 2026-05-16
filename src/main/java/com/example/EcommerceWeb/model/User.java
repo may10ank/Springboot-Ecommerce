@@ -1,5 +1,6 @@
 package com.example.EcommerceWeb.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -40,7 +41,7 @@ public class User {
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt=new Date();
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL,orphanRemoval = true)
-    @JsonManagedReference
+    @JsonIgnore
     private Cart cart;
 
     private String role = "USER";

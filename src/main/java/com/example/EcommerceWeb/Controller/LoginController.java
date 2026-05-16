@@ -10,6 +10,7 @@ import io.jsonwebtoken.Claims;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,8 +32,9 @@ private final TokenService tokenService;
     }
 
 
-    @PostMapping("/register/user")
+    @PostMapping(value = "/register/user",consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> registerUser(@RequestBody@Valid User user){
+        System.out.println("REQUEST RECEIVED");
         loginService.registerUser(user);
         return new ResponseEntity<>("User registered successfully,Login and start Shopping", HttpStatus.OK);
     }
