@@ -39,13 +39,13 @@ public class CartService {
         });
     }
 
-    @Cacheable(value = CACHE_NAME, key = "#userId")
+   // @Cacheable(value = CACHE_NAME, key = "#userId")
     public CartDTO getCartDto(int userId){
         Cart cart=isCartPresent(userId);
         return CartDTO.cartToCartDTO(cart);
     }
 
-    @CachePut(value = CACHE_NAME, key = "#userId")
+   // @CachePut(value = CACHE_NAME, key = "#userId")
     public CartDTO addItem(int userId,int productId,int quantity){
          Cart cart=isCartPresent(userId);
         Product product=productRepository.findById(productId)
@@ -70,19 +70,19 @@ public class CartService {
         return CartDTO.cartToCartDTO(saved);
     }
 
-    @CachePut(value = CACHE_NAME, key = "#userId")
+   // @CachePut(value = CACHE_NAME, key = "#userId")
     public CartDTO updateItem(int userId, int cartItemId, int quantity) {
         Cart cart = isCartPresent(userId);
         CartItem item = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new RuntimeException("Cart item not found: " + cartItemId));
 
-        item.setQuantity(item.getQuantity()+quantity);
+        item.setQuantity(quantity);
         cartItemRepository.save(item);
         Cart saved=cartRepository.save(cart);
         return CartDTO.cartToCartDTO(saved);
     }
 
-    @CacheEvict(value = CACHE_NAME, key = "#userId")
+   // @CacheEvict(value = CACHE_NAME, key = "#userId")
     public CartDTO removeItem(int userId, int cartItemId) {
         Cart cart = isCartPresent(userId);
         CartItem item = cartItemRepository.findById(cartItemId)
@@ -93,7 +93,7 @@ public class CartService {
         Cart saved=cartRepository.save(cart);
         return CartDTO.cartToCartDTO(saved);
     }
-    @CacheEvict(value = CACHE_NAME, key = "#userId")
+   // @CacheEvict(value = CACHE_NAME, key = "#userId")
     public Cart clearCart(int userId){
         Cart cart=cartRepository.findByUser_Id(userId).orElseThrow(()->new RuntimeException("cart not found for user id" + userId));
         cart.getItems().clear();

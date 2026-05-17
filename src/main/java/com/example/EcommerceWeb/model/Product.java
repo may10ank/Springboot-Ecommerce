@@ -41,13 +41,13 @@ public class Product {
     private int discountPercent;
     @OneToMany(mappedBy = "product",cascade = CascadeType.ALL,orphanRemoval = true,fetch = FetchType.EAGER)
     @JsonIgnoreProperties("product")
-    @JsonManagedReference
     private List<ProductImage> images;
     @Lob
     @JsonIgnore
     private byte[] video;
     @ManyToOne
     @JoinColumn(name = "business_id",nullable = false)
+    @JsonIgnore
     private Business business;
     @OneToMany(mappedBy = "product",cascade = CascadeType.ALL,orphanRemoval = true)
     @JsonManagedReference

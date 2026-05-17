@@ -20,14 +20,14 @@ public class BusinessService {
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final String CACHE_NAME="business";
 
-    @Cacheable(value = CACHE_NAME,key = "#email")
+   // @Cacheable(value = CACHE_NAME,key = "#email")
     public BusinessDTO getProfile(String email) {
         Business business = businessRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Business not found"));
         return new BusinessDTO(business);
     }
 
-    @CachePut(value = CACHE_NAME,key = "#email")
+  //  @CachePut(value = CACHE_NAME,key = "#email")
     public BusinessDTO updateProfile(String email, BusinessDTO updateDTO) {
         Business business = businessRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Business not found"));
@@ -41,7 +41,7 @@ public class BusinessService {
         return new BusinessDTO(saved);
     }
 
-    @CacheEvict(value = CACHE_NAME,key = "#email")
+  //  @CacheEvict(value = CACHE_NAME,key = "#email")
     public void deleteAccount(String email) {
         Business business = businessRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Business not found"));
@@ -49,7 +49,7 @@ public class BusinessService {
 
     }
 
-    @CacheEvict(value = CACHE_NAME,key = "#email")
+  //  @CacheEvict(value = CACHE_NAME,key = "#email")
     public void changePassword(String email, PasswordChangeDto passwordChangeDto){
         Business business=businessRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User not found"));
         if(!passwordEncoder.matches(passwordChangeDto.getOldPassword(),business.getPassword())){

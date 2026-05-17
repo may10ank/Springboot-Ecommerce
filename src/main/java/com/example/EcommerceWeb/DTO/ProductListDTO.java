@@ -102,6 +102,7 @@ public class ProductListDTO {
                 ImageBase64 = Base64.getEncoder().encodeToString(imageData);
             }
         }
+        dto.setId(product.getProductId());
         dto.setProductName(product.getProductName());
         dto.setBrand(product.getBrand());
         dto.setActualPrice(product.getActualPrice());

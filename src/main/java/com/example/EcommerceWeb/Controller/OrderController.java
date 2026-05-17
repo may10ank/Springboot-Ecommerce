@@ -28,10 +28,10 @@ public class OrderController {
     }
 
     @PostMapping("/place")
-    public ResponseEntity<OrderDTO> placeOrder(Authentication authentication){
+    public ResponseEntity<OrderDTO> placeOrder(@RequestParam String paymentMethod, Authentication authentication){
         String email=authentication.getName();
         User user=userRepository.findByEmail(email).orElseThrow(()->new UserNotFoundException("User does not exist"));
-        Order order=orderService.createOrder(user.getId());
+        Order order=orderService.createOrder(user.getId(),paymentMethod);
         return new ResponseEntity<>(OrderDTO.orderToOrderDto(order),HttpStatus.OK);
     }
     @GetMapping("/user")
@@ -78,5 +78,11 @@ public class OrderController {
         User user=userRepository.findByEmail(email).orElseThrow(()->new UserNotFoundException("User does not exist"));
         OrderDTO order = orderService.placeDirectOrder(user.getId(), productId, quantity);
         return new ResponseEntity<>(order, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/cancel/{orderId}")
+    public ResponseEntity<OrderDTO> cancelOrder(@PathVariable int orderId){
+        Order order = orderService.cancelOrder(orderId);
+        return new ResponseEntity<>(OrderDTO.orderToOrderDto(order),HttpStatus.OK);
     }
 }

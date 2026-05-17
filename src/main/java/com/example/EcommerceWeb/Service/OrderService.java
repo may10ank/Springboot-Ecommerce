@@ -5,6 +5,7 @@ import com.example.EcommerceWeb.DTO.OrderItemDTO;
 import com.example.EcommerceWeb.Repository.*;
 import com.example.EcommerceWeb.customException.ProductNotFoundException;
 import com.example.EcommerceWeb.model.*;
+import com.twilio.twiml.voice.Pay;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -33,7 +34,7 @@ public class OrderService {
     }
 
     @Transactional
-    public Order createOrder(int userId) {
+    public Order createOrder(int userId,String paymentMethod) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("user" + userId + "not found"));
         Cart cart = user.getCart();
         if (cart == null || cart.getItems().isEmpty()) {
@@ -41,7 +42,11 @@ public class OrderService {
         }
         Order order = new Order();
         order.setOrderDate(LocalDateTime.now());
-        order.setStatus(OrderStatus.PENDING);
+        if(paymentMethod.equals("COD")){
+            order.setStatus(OrderStatus.CONFIRMED);
+        }else {
+            order.setStatus(OrderStatus.PENDING);
+        }
         order.setDeliveryAddress(user.getAddress());
         order.setUser(user);
         int total = 0;
@@ -61,7 +66,19 @@ public class OrderService {
 
         order.setTotalAmount(total);
         Order savedOrder = orderRepository.save(order);
-
+        Payment payment = new Payment();
+        payment.setOrder(savedOrder);
+        payment.setPaymentDate(LocalDateTime.now());
+        payment.setPaymentMethod(PaymentMethod.valueOf(paymentMethod));
+        if(paymentMethod.equals("COD")){
+            payment.setStatus(PaymentStatus.PENDING);
+        } else {
+            payment.setStatus(PaymentStatus.SUCCESS);
+        }
+        payment.setAmount(total);
+        payment=paymentRepository.save(payment);
+        savedOrder.setPayment(payment);
+        orderRepository.save(savedOrder);
         cart.getItems().clear();
         cartRepository.save(cart);
         return savedOrder;
@@ -134,5 +151,12 @@ public class OrderService {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("user" + userId + "not found"));
         List<Order> orders = orderRepository.findByUserAndStatus(user,OrderStatus.DELIVERED);
         return orders.stream().map(OrderDTO::orderToOrderDto).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public Order cancelOrder(int orderId){
+        Order order = orderRepository.findById(orderId).orElseThrow(() ->new RuntimeException("Order not found"));
+        order.setStatus(OrderStatus.CANCELLED);
+        return orderRepository.save(order);
     }
 }

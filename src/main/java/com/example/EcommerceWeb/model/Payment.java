@@ -11,13 +11,12 @@ public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-
+    @Column(nullable = true)
     private String transactionId;
     @NotNull
     private int amount;
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
-
 
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;

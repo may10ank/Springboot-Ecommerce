@@ -5,6 +5,7 @@ import com.example.EcommerceWeb.DTO.PaymentRequestDTO;
 import com.example.EcommerceWeb.Repository.OrderRepository;
 import com.example.EcommerceWeb.Repository.PaymentRepository;
 import com.example.EcommerceWeb.Service.PaymentService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,10 +42,16 @@ public class PaymentController {
         return new ResponseEntity<>(paymentService.getById(id),HttpStatus.OK);
     }
 
+//    @GetMapping("/success")
+//    public ResponseEntity<String> paymentSuccess(@RequestParam("session_id") String sessionId) throws Exception {
+//        String result= paymentService.paymentSuccess(sessionId);
+//        return new ResponseEntity<>(result,HttpStatus.OK);
+//    }
+
     @GetMapping("/success")
-    public ResponseEntity<String> paymentSuccess(@RequestParam("session_id") String sessionId) throws Exception {
-        String result= paymentService.paymentSuccess(sessionId);
-        return new ResponseEntity<>(result,HttpStatus.OK);
+    public void paymentSuccess(@RequestParam("session_id") String sessionId, HttpServletResponse response) throws Exception {
+        paymentService.paymentSuccess(sessionId);
+        response.sendRedirect("http://localhost:4200/orders?payment=success");
     }
 
     @GetMapping("/cancel")

@@ -72,7 +72,7 @@ public class ProductService {
 }
     }
 
-    @CachePut(value = CACHE_NAME,key = "#id")
+   // @CachePut(value = CACHE_NAME,key = "#id")
     public Product updateProduct(int id, Product product, List<MultipartFile> images, MultipartFile video) {
         Product existing=productRepository.findById(id).orElseThrow(()->new ProductNotFoundException("Product with ID" + id + "not found"));
         existing.setProductName(product.getProductName());
@@ -105,7 +105,7 @@ public class ProductService {
         }
     }
 
-    @CacheEvict(value = CACHE_NAME,key = "#id")
+  //  @CacheEvict(value = CACHE_NAME,key = "#id")
     public void deleteProduct(int id) {
         if(!productRepository.existsById(id)){
             throw new ProductNotFoundException("Product with ID" + id + "not found");
@@ -128,7 +128,7 @@ public class ProductService {
        // return products.map(ProductListDTO::productToListDto);
     }
 
-    @Cacheable(value = CACHE_NAME,key = "#id")
+    //@Cacheable(value = CACHE_NAME,key = "#id")
     public ProductDTO getProductById(int id) {
         Product product=productRepository.findById(id).orElseThrow(()->new ProductNotFoundException("Product with ID" + id + "not found"));
         RatingSummaryDTO ratingSummaryDTO=reviewService.getRatingSummary(id);
@@ -194,7 +194,7 @@ public class ProductService {
         //return productRepository.findAll(specification,pageable);
     }
 
-    @CachePut(value = CACHE_NAME, key = "#id")
+  //  @CachePut(value = CACHE_NAME, key = "#id")
     public Product updateProductWithMedia(int id, Map<String, Object> updates, List<MultipartFile> images, MultipartFile video) throws IOException{
         Product product=productRepository.findById(id).orElseThrow(()->new ProductNotFoundException("Product with ID" + id + "not found"));
 

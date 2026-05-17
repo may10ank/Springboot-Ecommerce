@@ -44,7 +44,7 @@ public class OrderServiceTest {
         user.setCart(cart);
         when(userRepository.findById(1)).thenReturn(Optional.of(user));
         when(productRepository.save(any(Product.class))).thenReturn(product);
-        Order order=orderService.createOrder(1);
+        Order order=orderService.createOrder(1,"COD");
         when(orderRepository.save(any(Order.class))).thenReturn(order);
 
         assertThat(order.getTotalAmount()).isEqualTo(200);
