@@ -51,6 +51,7 @@ public class Product {
     private Business business;
     @OneToMany(mappedBy = "product",cascade = CascadeType.ALL,orphanRemoval = true)
     @JsonManagedReference
+    @JsonIgnore
     private List<Review> reviews=new ArrayList<>();
     private int totalSalesCount;
 

@@ -150,13 +150,10 @@ public class ProductController {
         List<Map<String, String>> chatHistory =
                 (List<Map<String, String>>) body.getOrDefault("chatHistory", List.of());
         String answer = productQAService.askQuestion(productId, question, chatHistory);
-
         return new ResponseEntity<>(
                 Map.of("answer", answer, "productId", String.valueOf(productId)),
                 HttpStatus.OK
         );
-
-
     }
 }
 

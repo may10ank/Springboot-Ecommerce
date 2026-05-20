@@ -32,9 +32,9 @@ public class VoiceSearchService {
 
         SearchFilters filters = callPythonVoiceSearch(audioFile);
 
-        return productService.searchProducts(
+        List<ProductListDTO> products=productService.searchProducts(
                 filters.getName(),
-                null,
+                filters.getCategory(),
                 filters.getBrand(),
                 filters.getMinPrice(),
                 filters.getMaxPrice(),
@@ -43,6 +43,7 @@ public class VoiceSearchService {
                 0,
                 10
         ).getContent();
+        return products;
     }
 
     private SearchFilters callPythonVoiceSearch(MultipartFile audioFile) throws Exception {

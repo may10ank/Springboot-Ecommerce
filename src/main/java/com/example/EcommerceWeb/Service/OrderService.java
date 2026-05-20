@@ -119,7 +119,7 @@ public class OrderService {
 
     public List<OrderDTO> getOrderByUser(int userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("user" + userId + "not found"));
-        List<Order> orders = orderRepository.findByUser(user);
+        List<Order> orders = orderRepository.findByUserAndStatusNotIn(user,List.of(OrderStatus.DELIVERED,OrderStatus.CANCELLED));
         return orders.stream().map(OrderDTO::orderToOrderDto).collect(Collectors.toList());
     }
 
@@ -149,7 +149,7 @@ public class OrderService {
 
     public List<OrderDTO> getOrderHistory(int userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("user" + userId + "not found"));
-        List<Order> orders = orderRepository.findByUserAndStatus(user,OrderStatus.DELIVERED);
+        List<Order> orders = orderRepository.findByUserAndStatusIn(user,List.of(OrderStatus.DELIVERED,OrderStatus.CANCELLED));
         return orders.stream().map(OrderDTO::orderToOrderDto).collect(Collectors.toList());
     }
 
