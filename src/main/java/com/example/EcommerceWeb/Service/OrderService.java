@@ -1,13 +1,10 @@
 package com.example.EcommerceWeb.Service;
 
 import com.example.EcommerceWeb.DTO.OrderDTO;
-import com.example.EcommerceWeb.DTO.OrderItemDTO;
 import com.example.EcommerceWeb.Repository.*;
 import com.example.EcommerceWeb.customException.ProductNotFoundException;
 import com.example.EcommerceWeb.model.*;
-import com.twilio.twiml.voice.Pay;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,13 +21,15 @@ public class OrderService {
     private final CartRepository cartRepository;
     private final ProductRepository productRepository;
     private final PaymentRepository paymentRepository;
+    private final BusinessRepository businessRepository;
 
-    public OrderService(OrderRepository orderRepository, UserRepository userRepository, CartRepository cartRepository, ProductRepository productRepository, PaymentRepository paymentRepository) {
+    public OrderService(OrderRepository orderRepository, UserRepository userRepository, CartRepository cartRepository, ProductRepository productRepository, PaymentRepository paymentRepository, BusinessRepository businessRepository) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.cartRepository = cartRepository;
         this.productRepository = productRepository;
         this.paymentRepository = paymentRepository;
+        this.businessRepository = businessRepository;
     }
 
     @Transactional
@@ -99,7 +98,7 @@ public class OrderService {
         Order order = new Order();
         order.setUser(user);
         order.setOrderDate(LocalDateTime.now());
-        order.setStatus(OrderStatus.PENDING);
+        order.setStatus(OrderStatus.CONFIRMED);
         order.setTotalAmount(product.getDiscountedPrice() * quantity);
         order.setDeliveryAddress(user.getAddress());
         OrderItem orderItem = new OrderItem();
@@ -156,7 +155,18 @@ public class OrderService {
     @Transactional
     public Order cancelOrder(int orderId){
         Order order = orderRepository.findById(orderId).orElseThrow(() ->new RuntimeException("Order not found"));
+        for(OrderItem orderItem:order.getItems()){
+            Product product=orderItem.getProduct();
+            product.setStock(product.getStock()+ orderItem.getQuantity());
+            product.setTotalSalesCount(Math.max(0,product.getTotalSalesCount()-orderItem.getQuantity()));
+            productRepository.save(product);
+        }
         order.setStatus(OrderStatus.CANCELLED);
         return orderRepository.save(order);
+    }
+
+    public List<OrderDTO> getOrderByBusiness(int businessId) {
+        List<Order> orders = orderRepository.findOrdersByBusinessId(businessId);
+        return orders.stream().map(OrderDTO::orderToOrderDto).collect(Collectors.toList());
     }
 }

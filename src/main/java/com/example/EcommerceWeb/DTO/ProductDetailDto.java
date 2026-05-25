@@ -18,7 +18,7 @@ public class ProductDetailDto {
     private int discountedPrice;
     private int discountPercent;
     private List<ProductImageDto> images;
-    private String videoBase64;
+    private String videoUrl;
 
     public int getId() {
         return id;
@@ -100,12 +100,12 @@ public class ProductDetailDto {
         this.images = images;
     }
 
-    public String getVideoBase64() {
-        return videoBase64;
+    public String getVideoUrl() {
+        return videoUrl;
     }
 
-    public void setVideoBase64(String videoBase64) {
-        this.videoBase64 = videoBase64;
+    public void setVideoUrl(String videoUrl) {
+        this.videoUrl = videoUrl;
     }
 
     public static ProductDetailDto fromEntity(Product product) {
@@ -122,16 +122,15 @@ public class ProductDetailDto {
                 .map(img -> {
                     ProductImageDto imgDto = new ProductImageDto();
                     imgDto.setId(img.getId());
-                    if (img.getData() != null) {
-                        imgDto.setImageBase64(Base64.getEncoder().encodeToString(img.getData()));
-                    }
+                    imgDto.setImageUrl(img.getImageUrl());
                     return imgDto;
                 }).toList();
         dto.setImages(imagesDto);
 
         if (product.getVideo() != null) {
-            dto.setVideoBase64(Base64.getEncoder().encodeToString(product.getVideo()));
+            dto.setVideoUrl(product.getVideo().getVideoUrl());
         }
+
         return dto;
     }
 

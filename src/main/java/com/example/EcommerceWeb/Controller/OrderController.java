@@ -1,14 +1,14 @@
 package com.example.EcommerceWeb.Controller;
 
 import com.example.EcommerceWeb.DTO.OrderDTO;
+import com.example.EcommerceWeb.Repository.BusinessRepository;
 import com.example.EcommerceWeb.Repository.UserRepository;
 import com.example.EcommerceWeb.Service.OrderService;
 import com.example.EcommerceWeb.customException.UserNotFoundException;
+import com.example.EcommerceWeb.model.Business;
 import com.example.EcommerceWeb.model.Order;
 import com.example.EcommerceWeb.model.OrderStatus;
 import com.example.EcommerceWeb.model.User;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -21,10 +21,12 @@ import java.util.List;
 public class OrderController {
     private final OrderService orderService;
     private final UserRepository userRepository;
+    private final BusinessRepository businessRepository;
 
-    public OrderController(OrderService orderService, UserRepository userRepository) {
+    public OrderController(OrderService orderService, UserRepository userRepository, BusinessRepository businessRepository) {
         this.orderService = orderService;
         this.userRepository = userRepository;
+        this.businessRepository = businessRepository;
     }
 
     @PostMapping("/place")
@@ -85,4 +87,13 @@ public class OrderController {
         Order order = orderService.cancelOrder(orderId);
         return new ResponseEntity<>(OrderDTO.orderToOrderDto(order),HttpStatus.OK);
     }
+
+    @GetMapping("/business")
+    public ResponseEntity<List<OrderDTO>> getOrdersByBusiness(Authentication authentication){
+        String email=authentication.getName();
+        Business business=businessRepository.findByEmail(email).orElseThrow(()->new UserNotFoundException("Business does not exist"));
+        List<OrderDTO> orderDTO=orderService.getOrderByBusiness(business.getBusinessId());
+        return new ResponseEntity<>(orderDTO, HttpStatus.OK);
+    }
 }
+

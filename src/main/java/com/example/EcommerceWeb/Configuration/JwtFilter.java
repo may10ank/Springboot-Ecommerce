@@ -3,6 +3,7 @@ package com.example.EcommerceWeb.Configuration;
 import com.example.EcommerceWeb.Service.JwtService;
 import com.example.EcommerceWeb.Service.MyUserDetailsService;
 import com.example.EcommerceWeb.Service.TokenService;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,43 +30,38 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String authHeader=request.getHeader("Authorization");
-        String token = null;
-        String username = null;
+        try {
+            String authHeader = request.getHeader("Authorization");
+            String token = null;
+            String username = null;
 
-        if(authHeader!=null && authHeader.startsWith("Bearer ")){
-            token=authHeader.substring(7);
-            username=jwtService.extractUserName(token);
-        }
-
-//        if(username!=null && SecurityContextHolder.getContext().getAuthentication()==null){
-//            UserDetails userDetails=userDetailsService.loadUserByUsername(username);
-//
-//            if(jwtService.validateToken(token,userDetails.getUsername())){
-//                UsernamePasswordAuthenticationToken authenticationToken=new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
-//
-//                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-//            }
-//        }
-//        filterChain.doFilter(request,response);
-
-        if (token != null && tokenService.isTokenBlacklisted(token)) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return;
-        }
-
-
-        if(username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            if(jwtService.validateToken(token, username)) {
-                String role = jwtService.extractRole(token); // ROLE_USER or ROLE_BUSINESS
-                List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
-
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(username, null, authorities);
-
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                token = authHeader.substring(7);
+                username = jwtService.extractUserName(token);
             }
+
+            if (token != null && tokenService.isTokenBlacklisted(token)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
+
+
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                if (jwtService.validateToken(token, username)) {
+                    String role = jwtService.extractRole(token); // ROLE_USER or ROLE_BUSINESS
+                    List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
+
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(username, null, authorities);
+
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            }
+            filterChain.doFilter(request, response);
+        }catch (ExpiredJwtException e){
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"Token expired, please login again\"}");
         }
-             filterChain.doFilter(request,response);
     }
 }

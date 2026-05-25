@@ -2,6 +2,7 @@ package com.example.EcommerceWeb.Controller;
 
 import com.example.EcommerceWeb.DTO.ProductDTO;
 import com.example.EcommerceWeb.DTO.ProductListDTO;
+import com.example.EcommerceWeb.DTO.ProductListingDTO;
 import com.example.EcommerceWeb.Repository.BusinessRepository;
 import com.example.EcommerceWeb.Service.ProductQAService;
 import com.example.EcommerceWeb.Service.ProductService;
@@ -63,7 +64,7 @@ public class ProductController {
     }
 
     @GetMapping("/getProductBusiness")
-    public ResponseEntity<Page<Product>> getProductByBusiness(@RequestParam(defaultValue = "0")int page,@RequestParam(defaultValue = "10")int size,Authentication authentication){
+    public ResponseEntity<Page<ProductListingDTO>> getProductByBusiness(@RequestParam(defaultValue = "0")int page, @RequestParam(defaultValue = "10")int size, Authentication authentication){
         String email = authentication.getName();
         Business business = businessRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Business not found"));

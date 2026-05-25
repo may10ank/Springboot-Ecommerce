@@ -42,9 +42,9 @@ public class Product {
     @OneToMany(mappedBy = "product",cascade = CascadeType.ALL,orphanRemoval = true,fetch = FetchType.EAGER)
     @JsonIgnoreProperties("product")
     private List<ProductImage> images;
-    @Lob
+    @OneToOne(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
-    private byte[] video;
+    private ProductVideo video;
     @ManyToOne
     @JoinColumn(name = "business_id",nullable = false)
     @JsonIgnore
@@ -143,13 +143,8 @@ public class Product {
         this.images = images;
     }
 
-    public byte[] getVideo() {
-        return video;
-    }
-
-    public void setVideo(byte[] video) {
-        this.video = video;
-    }
+    public ProductVideo getVideo() { return video; }
+    public void setVideo(ProductVideo video) { this.video = video; }
 
     public List<Review> getReviews() {
         return reviews;
@@ -170,10 +165,10 @@ public class Product {
     public Product() {
     }
 
-    public Product(int id, String name, String description, String category, String brand, int stock, int actualPrice, int discountedPrice, int discountPercent, List<ProductImage> images, byte[] video) {
-        this.productId = id;
-        this.productName = name;
-        this.productDescription= description;
+    public Product(int productId, String productName, String productDescription, String category, String brand, int stock, int actualPrice, int discountedPrice, int discountPercent, List<ProductImage> images, ProductVideo video, Business business, List<Review> reviews, int totalSalesCount) {
+        this.productId = productId;
+        this.productName = productName;
+        this.productDescription = productDescription;
         this.category = category;
         this.brand = brand;
         this.stock = stock;
@@ -182,9 +177,12 @@ public class Product {
         this.discountPercent = discountPercent;
         this.images = images;
         this.video = video;
+        this.business = business;
+        this.reviews = reviews;
+        this.totalSalesCount = totalSalesCount;
     }
 
-    public void reduceStock(int quantity,Product product){
+    public void reduceStock(int quantity, Product product){
         if(this.stock<quantity){
             throw new IllegalArgumentException("Stock for the product+"+product.getProductName()+"is zero");
         }

@@ -1,19 +1,14 @@
 package com.example.EcommerceWeb.Service;
 
-import com.example.EcommerceWeb.DTO.ProductDTO;
-import com.example.EcommerceWeb.DTO.ProductListDTO;
-import com.example.EcommerceWeb.DTO.RatingSummaryDTO;
-import com.example.EcommerceWeb.DTO.ReviewDTO;
-import com.example.EcommerceWeb.Repository.BusinessRepository;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+import com.example.EcommerceWeb.Configuration.CloudinaryConfig;
+import com.example.EcommerceWeb.DTO.*;
 import com.example.EcommerceWeb.Repository.ProductImageRepository;
 import com.example.EcommerceWeb.Repository.ProductRepository;
 import com.example.EcommerceWeb.Repository.ReviewRepository;
 import com.example.EcommerceWeb.customException.ProductNotFoundException;
 import com.example.EcommerceWeb.model.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -39,13 +34,15 @@ public class ProductService {
     private final ReviewRepository reviewRepository;
     private final ReviewService reviewService;
     private final Validator validator;
+    private final Cloudinary cloudinary;
 
-    public ProductService(ProductRepository productRepository, ProductImageRepository productImageRepository, ReviewRepository reviewRepository, ReviewService reviewService, Validator validator) {
+    public ProductService(ProductRepository productRepository, ProductImageRepository productImageRepository, ReviewRepository reviewRepository, ReviewService reviewService, Validator validator,Cloudinary cloudinary) {
         this.productRepository = productRepository;
         this.productImageRepository = productImageRepository;
         this.reviewRepository = reviewRepository;
         this.reviewService = reviewService;
         this.validator = validator;
+        this.cloudinary = cloudinary;
     }
 
     private final String CACHE_NAME="product";
@@ -54,17 +51,22 @@ public class ProductService {
     List<ProductImage> imageEntity=new ArrayList<>();
     if(images!=null) {
         for (MultipartFile file : images) {
+            Map result=cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap("folder","products/images"));
             ProductImage image1 = new ProductImage();
-            image1.setFileName(file.getOriginalFilename());
-            image1.setFileType(file.getContentType());
-            image1.setData(file.getBytes());
+            image1.setImageUrl((String)result.get("secure_url"));
+            image1.setPublicId((String)result.get("public_id"));
             image1.setProduct(product);
             imageEntity.add(image1);
         }
     }
     product.setImages(imageEntity);
     if(video!=null){
-        product.setVideo(video.getBytes());
+        Map result=cloudinary.uploader().upload(video.getBytes(),ObjectUtils.asMap("resource_type","video","folder","products/videos"));
+        ProductVideo productVideo=new ProductVideo();
+        productVideo.setVideoUrl((String)result.get("secure_url"));
+        productVideo.setPublicId((String)result.get("public_id"));
+        productVideo.setProduct(product);
+        product.setVideo(productVideo);
     }
     return productRepository.save(product);
 }catch (IOException e){
@@ -79,25 +81,59 @@ public class ProductService {
         existing.setProductDescription(product.getProductDescription());
         existing.setCategory(product.getCategory());
         existing.setBrand(product.getBrand());
-        existing.setStock(product.getStock()+existing.getStock());
+        existing.setStock(product.getStock());
         existing.setActualPrice(product.getActualPrice());
         existing.setDiscountedPrice(product.getDiscountedPrice());
         existing.setDiscountPercent(product.getDiscountPercent());
         try{
-            if(images!=null){
+            if(images!=null && !images.isEmpty()){
+                if (existing.getImages() != null) {
+                    for (ProductImage oldImage : existing.getImages()) {
+                        if (oldImage.getPublicId() != null) {
+                            cloudinary.uploader().destroy(
+                                    oldImage.getPublicId(),
+                                    ObjectUtils.emptyMap()
+                            );
+                        }
+                    }
+                }
+
                 List<ProductImage> imageEntities = new ArrayList<>();
                 for (MultipartFile file : images) {
+                    Map uploadResult = cloudinary.uploader().upload(
+                            file.getBytes(),
+                            ObjectUtils.asMap("folder", "products/images")
+                    );
                     ProductImage image1 = new ProductImage();
-                    image1.setFileName(file.getOriginalFilename());
-                    image1.setFileType(file.getContentType());
-                    image1.setData(file.getBytes());
+                    image1.setImageUrl((String) uploadResult.get("secure_url"));
+                    image1.setPublicId((String) uploadResult.get("public_id"));
                     image1.setProduct(existing);
                     imageEntities.add(image1);
                 }
                  existing.setImages(imageEntities);
             }
-            if(video!=null){
-                existing.setVideo(video.getBytes());
+
+            if (video != null && !video.isEmpty()) {
+                if (existing.getVideo() != null && existing.getVideo().getPublicId() != null) {
+                    cloudinary.uploader().destroy(
+                            existing.getVideo().getPublicId(),
+                            ObjectUtils.asMap("resource_type", "video")
+                    );
+                }
+                Map uploadResult = cloudinary.uploader().upload(
+                        video.getBytes(),
+                        ObjectUtils.asMap(
+                                "resource_type", "video",
+                                "folder", "products/videos"
+                        )
+                );
+                ProductVideo productVideo = existing.getVideo() != null
+                        ? existing.getVideo()
+                        : new ProductVideo();
+                productVideo.setVideoUrl((String) uploadResult.get("secure_url"));
+                productVideo.setPublicId((String) uploadResult.get("public_id"));
+                productVideo.setProduct(existing);
+                existing.setVideo(productVideo);
             }
             return productRepository.save(existing);
         }catch(IOException e){
@@ -106,17 +142,44 @@ public class ProductService {
     }
 
   //  @CacheEvict(value = CACHE_NAME,key = "#id")
-    public void deleteProduct(int id) {
-        if(!productRepository.existsById(id)){
-            throw new ProductNotFoundException("Product with ID" + id + "not found");
-        }
-        productRepository.deleteById(id);
+  public void deleteProduct(int id) {
+      Product existing = productRepository.findById(id)
+              .orElseThrow(() -> new ProductNotFoundException("Product with ID " + id + " not found"));
+      try {
+          if (existing.getImages() != null) {
+              for (ProductImage image : existing.getImages()) {
+                  if (image.getPublicId() != null) {
+                      cloudinary.uploader().destroy(
+                              image.getPublicId(),
+                              ObjectUtils.emptyMap()
+                      );
+                  }
+              }
+          }
+          if (existing.getVideo() != null && existing.getVideo().getPublicId() != null) {
+              cloudinary.uploader().destroy(
+                      existing.getVideo().getPublicId(),
+                      ObjectUtils.asMap("resource_type", "video")
+              );
+          }
+
+      } catch (Exception e) {
+          throw new RuntimeException("Error deleting media from Cloudinary", e);
+      }
+      productRepository.deleteById(id);
+  }
+
+
+    public Page<ProductListingDTO> getProductByBusiness(int businessId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Product> products = productRepository.findByBusinessBusinessId(businessId, pageable);
+
+        return products.map(product -> {
+            RatingSummaryDTO rating = reviewService.getRatingSummary(product.getProductId());
+            return ProductListingDTO.productToListDto(product, rating);
+        });
     }
 
-    public Page<Product> getProductByBusiness(int businessId,int page,int size){
-        Pageable pageable=PageRequest.of(page,size);
-        return productRepository.findByBusinessBusinessId(businessId,pageable);
-    }
 
     public Page<ProductListDTO> getAllProducts(int page,int size) {
         Pageable pageable=PageRequest.of(page,size);
@@ -140,17 +203,18 @@ public class ProductService {
         productDTO.setActualPrice(product.getActualPrice());
         productDTO.setDiscountedPrice(product.getDiscountedPrice());
         productDTO.setDiscountPercent(product.getDiscountPercent());
-        List<String> imageBase64=product.getImages().stream()
-                        .map(img->Base64.getEncoder().encodeToString(img.getData()))
+        List<String> imageUrls=product.getImages().stream()
+                        .map(ProductImage::getImageUrl)
                                 .collect(Collectors.toList());
-        productDTO.setProductImages(imageBase64);
+        productDTO.setProductImages(imageUrls);
         if(product.getVideo()!=null) {
-            productDTO.setVideos(Base64.getEncoder().encodeToString(product.getVideo()));
+            productDTO.setVideos(product.getVideo().getVideoUrl());
         }
         productDTO.setBrand(product.getBrand());
         productDTO.setRatingSummaryDTO(ratingSummaryDTO);
         productDTO.setReviewList(reviewDTO);
         productDTO.setRatingDistributionSummary(distribution);
+        productDTO.setTotalSalesCount(product.getTotalSalesCount());
         return productDTO;
     }
 
@@ -190,8 +254,6 @@ public class ProductService {
             RatingSummaryDTO ratingSummary = reviewService.getRatingSummary(products.getProductId());
             return ProductListDTO.productToListDto(products, ratingSummary);
         });
-
-        //return productRepository.findAll(specification,pageable);
     }
 
   //  @CachePut(value = CACHE_NAME, key = "#id")
@@ -204,7 +266,7 @@ public class ProductService {
                 case "description": product.setProductDescription((String) value); break;
                 case "category": product.setCategory((String) value); break;
                 case "brand": product.setBrand((String) value); break;
-                case "stock": product.setStock(product.getStock() + ((Number) value).intValue()); break;
+                case "stock": product.setStock(((Number) value).intValue()); break;
                 case "actualPrice": product.setActualPrice(((Number) value).intValue()); break;
                 case "discountedPrice": product.setDiscountedPrice(((Number) value).intValue()); break;
                 case "discountPercent": product.setDiscountPercent(((Number) value).intValue()); break;
@@ -219,14 +281,39 @@ public class ProductService {
 
         if (images != null && !images.isEmpty()) {
             for (MultipartFile file : images) {
+                Map uploadResult = cloudinary.uploader().upload(
+                        file.getBytes(),
+                        ObjectUtils.asMap("folder", "products/images")
+                );
                 ProductImage img = new ProductImage();
-                img.setData(file.getBytes());
+                img.setImageUrl((String) uploadResult.get("secure_url"));
+                img.setPublicId((String) uploadResult.get("public_id"));
                 img.setProduct(product);
                 productImageRepository.save(img);
             }
         }
-        if (video != null) {
-            product.setVideo(video.getBytes());
+        if (video != null && !video.isEmpty()) {
+            if (product.getVideo() != null && product.getVideo().getPublicId() != null) {
+                cloudinary.uploader().destroy(
+                        product.getVideo().getPublicId(),
+                        ObjectUtils.asMap("resource_type", "video")
+                );
+            }
+            Map uploadResult = cloudinary.uploader().upload(
+                    video.getBytes(),
+                    ObjectUtils.asMap(
+                            "resource_type", "video",
+                            "folder", "products/videos"
+                    )
+            );
+            ProductVideo productVideo = product.getVideo() != null
+                    ? product.getVideo()
+                    : new ProductVideo();
+
+            productVideo.setVideoUrl((String) uploadResult.get("secure_url"));
+            productVideo.setPublicId((String) uploadResult.get("public_id"));
+            productVideo.setProduct(product);
+            product.setVideo(productVideo);
         }
         return productRepository.save(product);
     }

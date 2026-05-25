@@ -19,7 +19,6 @@ public class ProductDTO {
     private RatingSummaryDTO ratingSummaryDTO;
     private Page<ReviewDTO> reviewList;
     private Map<String,Object> ratingDistributionSummary;
-
     private List<String> productImages;
     private String videos;
 

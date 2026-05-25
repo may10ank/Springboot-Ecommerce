@@ -1,16 +1,10 @@
 package com.example.EcommerceWeb.DTO;
 
-import com.example.EcommerceWeb.Service.ReviewService;
 import com.example.EcommerceWeb.model.Product;
-import com.example.EcommerceWeb.model.ProductImage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 
 import java.util.Base64;
-import java.util.List;
-import java.util.Map;
 
-public class ProductListDTO {
+public class ProductListingDTO {
     private int id;
     private String productName;
     private String Brand;
@@ -20,6 +14,33 @@ public class ProductListDTO {
     private RatingSummaryDTO ratingSummaryDTO;
     private String productImage;
     private int totalSalesCount;
+    private String productDescription;
+    private String category;
+    private int stock;
+
+    public String getProductDescription() {
+        return productDescription;
+    }
+
+    public void setProductDescription(String productDescription) {
+        this.productDescription = productDescription;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public int getStock() {
+        return stock;
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;
+    }
 
     public String getProductName() {
         return productName;
@@ -93,8 +114,9 @@ public class ProductListDTO {
         this.id = id;
     }
 
-    public static ProductListDTO productToListDto(Product product, RatingSummaryDTO ratingSummaryDTO){
-        ProductListDTO dto=new ProductListDTO();
+    public static ProductListingDTO productToListDto(Product product, RatingSummaryDTO ratingSummaryDTO){
+        ProductListingDTO dto=new ProductListingDTO();
+        String ImageBase64 = null;
         if (product.getImages() != null && !product.getImages().isEmpty()) {
             dto.setProductImage(product.getImages().get(0).getImageUrl());
         }
@@ -106,6 +128,9 @@ public class ProductListDTO {
         dto.setDiscountPercent(product.getDiscountPercent());
         dto.setRatingSummaryDTO(ratingSummaryDTO);
         dto.setTotalSalesCount(product.getTotalSalesCount());
+        dto.setProductDescription(product.getProductDescription());
+        dto.setCategory(product.getCategory());
+        dto.setStock(product.getStock());
         return dto;
     }
 }
