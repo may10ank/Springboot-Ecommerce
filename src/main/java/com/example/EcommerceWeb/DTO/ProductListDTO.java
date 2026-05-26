@@ -20,6 +20,15 @@ public class ProductListDTO {
     private RatingSummaryDTO ratingSummaryDTO;
     private String productImage;
     private int totalSalesCount;
+    private String category;
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
 
     public String getProductName() {
         return productName;
@@ -106,6 +115,7 @@ public class ProductListDTO {
         dto.setDiscountPercent(product.getDiscountPercent());
         dto.setRatingSummaryDTO(ratingSummaryDTO);
         dto.setTotalSalesCount(product.getTotalSalesCount());
+        dto.setCategory(product.getCategory());
         return dto;
     }
 }

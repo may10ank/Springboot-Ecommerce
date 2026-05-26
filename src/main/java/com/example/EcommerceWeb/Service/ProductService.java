@@ -21,6 +21,7 @@ import org.springframework.validation.Validator;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -183,12 +184,14 @@ public class ProductService {
 
     public Page<ProductListDTO> getAllProducts(int page,int size) {
         Pageable pageable=PageRequest.of(page,size);
-        Page<Product> products=productRepository.findAll(pageable);
+        LocalDateTime oneWeekAgo=LocalDateTime.now().minusWeeks(1);
+//        Page<Product> products=productRepository.findAll(pageable);
+         Page<Product> products = productRepository.findAllSortedProducts(oneWeekAgo, pageable);
+
         return products.map(product->{
             RatingSummaryDTO ratingSummaryDTO=reviewService.getRatingSummary(product.getProductId());
             return ProductListDTO.productToListDto(product,ratingSummaryDTO);
                 });
-       // return products.map(ProductListDTO::productToListDto);
     }
 
     //@Cacheable(value = CACHE_NAME,key = "#id")
@@ -316,5 +319,16 @@ public class ProductService {
             product.setVideo(productVideo);
         }
         return productRepository.save(product);
+    }
+
+    public List<ProductListDTO> getSimilarProducts(int productId){
+        Product product =productRepository.findById(productId).orElseThrow();
+
+        Specification<Product> spec =ProductSpecification.brandContains(product.getBrand()).or(
+                                ProductSpecification.categoryContains(product.getCategory()));
+        List<Product> products =productRepository.findAll(spec);
+        return products.stream().filter(p ->p.getProductId()!=productId)
+                .limit(8).map(p ->ProductListDTO.productToListDto(p,reviewService.getRatingSummary(p.getProductId())))
+                .toList();
     }
 }

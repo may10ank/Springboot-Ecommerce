@@ -156,5 +156,10 @@ public class ProductController {
                 HttpStatus.OK
         );
     }
+
+    @GetMapping("/{productId}/similar")
+    public ResponseEntity<List<ProductListDTO>> getSimilarProducts(@PathVariable int productId){
+        return new ResponseEntity<>(productService.getSimilarProducts(productId),HttpStatus.OK);
+    }
 }
 
