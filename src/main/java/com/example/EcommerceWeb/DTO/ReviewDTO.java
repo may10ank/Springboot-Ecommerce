@@ -6,10 +6,19 @@ import java.time.LocalDateTime;
 
 
 public class ReviewDTO {
+    private int reviewId;
     private int rating;
     private String comment;
     private String username;
     private LocalDateTime createdAt;
+
+    public int getReviewId() {
+        return reviewId;
+    }
+
+    public void setReviewId(int reviewId) {
+        this.reviewId = reviewId;
+    }
 
     public int getRating() {
         return rating;
@@ -55,6 +64,7 @@ public class ReviewDTO {
 
     public static ReviewDTO reviewToDto(Review review){
         ReviewDTO reviewDTO=new ReviewDTO();
+        reviewDTO.setReviewId(review.getId());
         reviewDTO.setComment(review.getComment());
         reviewDTO.setRating(review.getRating());
         reviewDTO.setUsername(review.getUser().getUsername());

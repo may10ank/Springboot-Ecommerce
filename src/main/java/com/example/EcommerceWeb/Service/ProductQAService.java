@@ -47,9 +47,7 @@ public class ProductQAService {
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
-
         List<ReviewDTO> reviewDTOs = reviewService.getReviewsByProduct(productId);
-
         ProductqarequestDTO request = new ProductqarequestDTO();
         request.setProductId(productId);
         request.setProductName(product.getProductName());
@@ -61,7 +59,6 @@ public class ProductQAService {
         request.setDiscountPercent(product.getDiscountPercent());
         request.setQuestion(question);
 
-        // 4. Map reviews
         List<ProductqarequestDTO.ReviewItem> reviewItems = reviewDTOs.stream()
                 .filter(r -> r.getComment() != null && !r.getComment().isBlank())
                 .map(r -> new ProductqarequestDTO.ReviewItem(r.getRating(), r.getComment()))

@@ -44,16 +44,12 @@ public class JwtFilter extends OncePerRequestFilter {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
-
-
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 if (jwtService.validateToken(token, username)) {
-                    String role = jwtService.extractRole(token); // ROLE_USER or ROLE_BUSINESS
+                    String role = jwtService.extractRole(token);
                     List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
-
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(username, null, authorities);
-
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }

@@ -31,7 +31,6 @@ private final TokenService tokenService;
         this.tokenService = tokenService;
     }
 
-
     @PostMapping(value = "/register/user",consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> registerUser(@RequestBody@Valid User user){
         System.out.println("REQUEST RECEIVED");
@@ -59,9 +58,7 @@ private final TokenService tokenService;
             LocalDateTime expiry = expirationDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
             tokenService.blacklistToken(token, expiry);
         }
-
         return ResponseEntity.ok("Logged out successfully");
     }
-
 
 }

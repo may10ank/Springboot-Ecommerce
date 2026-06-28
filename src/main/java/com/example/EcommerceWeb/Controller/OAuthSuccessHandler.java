@@ -50,7 +50,7 @@ public class OAuthSuccessHandler implements AuthenticationSuccessHandler {
         }
         String intendedRole = (String) request.getSession().getAttribute("oauth_intended_role");
         if (intendedRole == null) intendedRole = "USER";
-        request.getSession().removeAttribute("oauth_intended_role"); // clean up
+        request.getSession().removeAttribute("oauth_intended_role");
         String role;
 
         if (userRepository.findByEmail(email).isPresent()) {

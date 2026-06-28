@@ -29,9 +29,7 @@ public class VoiceSearchService {
     }
 
     public List<ProductListDTO> searchByVoice(MultipartFile audioFile) throws Exception {
-
         SearchFilters filters = callPythonVoiceSearch(audioFile);
-
         List<ProductListDTO> products=productService.searchProducts(
                 filters.getName(),
                 filters.getCategory(),
@@ -49,7 +47,6 @@ public class VoiceSearchService {
     private SearchFilters callPythonVoiceSearch(MultipartFile audioFile) throws Exception {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
         builder.part("audio", new ByteArrayResource(audioFile.getBytes()) {
             @Override
@@ -57,9 +54,7 @@ public class VoiceSearchService {
                 return audioFile.getOriginalFilename();
             }
         });
-
         HttpEntity<?> entity = new HttpEntity<>(builder.build(), headers);
-
         try {
             ResponseEntity<String> response = restTemplate.exchange(
                     PYTHON_VOICE_SEARCH_URL,
@@ -73,9 +68,3 @@ public class VoiceSearchService {
         }
     }
 }
-
-
-
-
-
-

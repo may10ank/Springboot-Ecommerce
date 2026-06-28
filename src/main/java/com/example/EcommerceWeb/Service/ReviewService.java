@@ -126,4 +126,23 @@ public class ReviewService {
         summary.put("distribution", distribution);
         return summary;
     }
+
+    public boolean hasUserReviewedProduct(int userId, int productId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        return reviewRepository.existsByUserAndProduct(user, product);
+    }
+
+    public ReviewDTO getUserReviewForProduct(int userId, int productId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        Review review = reviewRepository.findByUserAndProduct(user, product)
+                .orElse(null);
+        return review != null ? ReviewDTO.reviewToDto(review) : null;
+    }
+
 }

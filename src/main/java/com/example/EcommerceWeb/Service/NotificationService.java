@@ -37,7 +37,6 @@ public class NotificationService {
                 new com.twilio.type.PhoneNumber(twilioFromNumber),
                 message
         ).create();
-
         System.out.println("SMS sent to " + phone);
     }
 

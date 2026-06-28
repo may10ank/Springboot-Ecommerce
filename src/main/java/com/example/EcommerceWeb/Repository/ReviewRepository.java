@@ -11,7 +11,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import javax.swing.text.html.Option;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ReviewRepository extends JpaRepository<Review,Integer> {
@@ -24,5 +26,6 @@ public interface ReviewRepository extends JpaRepository<Review,Integer> {
     Double findAverageRatingByProduct(@Param("product")Product product);
     @Query("SELECT COUNT(r) FROM Review r WHERE r.product = :product")
     int countReviewsByProduct(@Param("product")Product product);
-
+    boolean existsByUserAndProduct(User user,Product product);
+    Optional<Review> findByUserAndProduct(User user,Product product);
 }

@@ -42,12 +42,6 @@ public class PaymentController {
         return new ResponseEntity<>(paymentService.getById(id),HttpStatus.OK);
     }
 
-//    @GetMapping("/success")
-//    public ResponseEntity<String> paymentSuccess(@RequestParam("session_id") String sessionId) throws Exception {
-//        String result= paymentService.paymentSuccess(sessionId);
-//        return new ResponseEntity<>(result,HttpStatus.OK);
-//    }
-
     @GetMapping("/success")
     public void paymentSuccess(@RequestParam("session_id") String sessionId, HttpServletResponse response) throws Exception {
         paymentService.paymentSuccess(sessionId);

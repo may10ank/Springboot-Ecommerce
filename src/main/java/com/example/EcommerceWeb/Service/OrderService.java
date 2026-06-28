@@ -62,7 +62,6 @@ public class OrderService {
             order.getItems().add(orderItem);
             total += orderItem.getTotalPrice();
         }
-
         order.setTotalAmount(total);
         Order savedOrder = orderRepository.save(order);
         Payment payment = new Payment();
