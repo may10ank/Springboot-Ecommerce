@@ -6,10 +6,12 @@ from pydantic import BaseModel
 from typing import List,Optional
 from groq import Groq
 from dotenv import load_dotenv
+from product_qa import ProductQARequest, ProductQAResponse, answer_product_question
 
 load_dotenv()
 
 GROQ_API_KEY=os.getenv("GROQ_API_KEY")
+
 if not GROQ_API_KEY:
     raise RuntimeError("GROQ_API_KEY not set in .env file")
 
@@ -86,80 +88,90 @@ def transcribe_audio(audio_bytes: bytes,filename:str)-> str:
 def parse_query_to_filters(query: str) -> SearchFilters:
     prompt = f"""
 Extract product search filters from the user's voice query.
-Output ONLY a valid JSON object with no explanation, no markdown, no backticks.
+
+Output ONLY a valid JSON object.
+Do NOT include explanations, markdown, or backticks.
+
+Use ONLY these allowed categories:
+- electronics
+- footwear
+- clothing
+- furniture
+- appliances
+- skincare
+- fitness
+- jewellery
+- sports
+- baby products
+
+Category mapping rules:
+- mobile, smartphone, phone, laptop, headphones, earbuds, printer → electronics
+- shoes, sneakers, sandals, boots → footwear
+- tshirt, jeans, hoodie, shirt → clothing
+- chair, table, sofa, bed → furniture
+- refrigerator, washing machine, microwave → appliances
+- face wash, cream, shampoo → skincare
+- protein powder, dumbbells → fitness
+- necklace, ring, gold chain → jewellery
+- cricket bat, football, badminton racket → sports
+- diapers, baby lotion, baby soap → baby products
 
 JSON format:
 {{
   "name": "product keyword or null",
-"category": "infer category from product name if not explicitly mentioned (e.g. mobile/phone → mobile, shoes/sneakers → footwear, laptop/notebook → electronics)",
+  "category": "one allowed category or null",
   "brand": "brand if mentioned or null",
   "minPrice": number or null,
   "maxPrice": number or null
 }}
 
 Examples:
-Query: "show me Samsung mobile under 20000"
-Output: {{"name": "mobile", "category": "mobile", "brand": "Samsung", "minPrice": null, "maxPrice": 20000}}
-
-Query: "show me Nike shoes under 3000 rupees"
-Output: {{"name": "shoes", "category": "footwear", "brand": "Nike", "minPrice": null, "maxPrice": 3000}}
-
-Query: "I want a Samsung mobile between 10000 and 20000"
-Output: {{"name": "mobile", "category": "mobile", "brand": "Samsung", "minPrice": 10000, "maxPrice": 20000}}
 
 Query: "show me Samsung mobile under 20000"
-Output: {{"name": "mobile", "category": "mobile", "brand": "Samsung", "minPrice": null, "maxPrice": 20000}}
+Output:
+{{"name":"mobile","category":"electronics","brand":"Samsung","minPrice":null,"maxPrice":20000}}
 
 Query: "find me a laptop"
-Output: {{"name": "laptop", "category": "electronics", "brand": null, "minPrice": null, "maxPrice": null}}
+Output:
+{{"name":"laptop","category":"electronics","brand":null,"minPrice":null,"maxPrice":null}}
+
+Query: "show me Nike shoes under 3000"
+Output:
+{{"name":"shoes","category":"footwear","brand":"Nike","minPrice":null,"maxPrice":3000}}
 
 Query: "show me t-shirts under 500"
-Output: {{"name": "t-shirt", "category": "clothing", "brand": null, "minPrice": null, "maxPrice": 500}}
-
-Query: "I need a Dell laptop under 60000"
-Output: {{"name": "laptop", "category": "electronics", "brand": "Dell", "minPrice": null, "maxPrice": 60000}}
-
-Query: "show me wireless headphones between 1000 and 5000"
-Output: {{"name": "headphones", "category": "electronics", "brand": null, "minPrice": 1000, "maxPrice": 5000}}
-
-Query: "find Adidas running shoes"
-Output: {{"name": "running shoes", "category": "footwear", "brand": "Adidas", "minPrice": null, "maxPrice": null}}
-
-Query: "I want a refrigerator under 30000"
-Output: {{"name": "refrigerator", "category": "appliances", "brand": null, "minPrice": null, "maxPrice": 30000}}
-
-Query: "show me LG washing machine"
-Output: {{"name": "washing machine", "category": "appliances", "brand": "LG", "minPrice": null, "maxPrice": null}}
-
-Query: "find me a gaming chair under 15000"
-Output: {{"name": "gaming chair", "category": "furniture", "brand": null, "minPrice": null, "maxPrice": 15000}}
-
-Query: "I want Sony earbuds between 2000 and 8000"
-Output: {{"name": "earbuds", "category": "electronics", "brand": "Sony", "minPrice": 2000, "maxPrice": 8000}}
-
-Query: "show me face wash under 200"
-Output: {{"name": "face wash", "category": "skincare", "brand": null, "minPrice": null, "maxPrice": 200}}
-
-Query: "find me protein powder"
-Output: {{"name": "protein powder", "category": "fitness", "brand": null, "minPrice": null, "maxPrice": null}}
-
-Query: "I need a HP printer under 10000"
-Output: {{"name": "printer", "category": "electronics", "brand": "HP", "minPrice": null, "maxPrice": 10000}}
-
-Query: "show me gold jewellery under 50000"
-Output: {{"name": "jewellery", "category": "jewellery", "brand": null, "minPrice": null, "maxPrice": 50000}}
-
-Query: "find Levi's jeans between 1500 and 3000"
-Output: {{"name": "jeans", "category": "clothing", "brand": "Levis", "minPrice": 1500, "maxPrice": 3000}}
-
-Query: "I want a cricket bat under 2000"
-Output: {{"name": "cricket bat", "category": "sports", "brand": null, "minPrice": null, "maxPrice": 2000}}
-
-Query: "show me baby diapers"
-Output: {{"name": "diapers", "category": "baby products", "brand": null, "minPrice": null, "maxPrice": null}}
+Output:
+{{"name":"t-shirt","category":"clothing","brand":null,"minPrice":null,"maxPrice":500}}
 
 Query: "find me a wooden dining table"
-Output: {{"name": "dining table", "category": "furniture", "brand": null, "minPrice": null, "maxPrice": null}}
+Output:
+{{"name":"dining table","category":"furniture","brand":null,"minPrice":null,"maxPrice":null}}
+
+Query: "show me LG washing machine"
+Output:
+{{"name":"washing machine","category":"appliances","brand":"LG","minPrice":null,"maxPrice":null}}
+
+Query: "show me face wash under 200"
+Output:
+{{"name":"face wash","category":"skincare","brand":null,"minPrice":null,"maxPrice":200}}
+
+Query: "find me protein powder"
+Output:
+{{"name":"protein powder","category":"fitness","brand":null,"minPrice":null,"maxPrice":null}}
+
+Query: "show me gold jewellery under 50000"
+Output:
+{{"name":"jewellery","category":"jewellery","brand":null,"minPrice":null,"maxPrice":50000}}
+
+Query: "I want a cricket bat under 2000"
+Output:
+{{"name":"cricket bat","category":"sports","brand":null,"minPrice":null,"maxPrice":2000}}
+
+Query: "show me baby diapers"
+Output:
+{{"name":"diapers","category":"baby products","brand":null,"minPrice":null,"maxPrice":null}}
+
+
 Query: "{query}"
 Output:"""
 
@@ -204,16 +216,18 @@ async def voice_search(audio: UploadFile = File(...)):
     try:
         audio_bytes = await audio.read()
         transcript = transcribe_audio(audio_bytes, audio.filename)
-        print(f"[Transcript] {transcript}")
         filters = parse_query_to_filters(transcript)
-        print(f"[Filters] {filters}")
         return filters
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Voice search error: {str(e)}")
+    
+@app.post("/product-qa", response_model=ProductQAResponse)
+async def product_qa(request: ProductQARequest) -> ProductQAResponse:
+    if not request.question or not request.question.strip():
+        raise HTTPException(status_code=400, detail="Question cannot be empty")
+    return await answer_product_question(request)
+
 
 @app.get("/health")
 def health():
     return {"status": "ok", "service": "review-summary"}
-
-
-
